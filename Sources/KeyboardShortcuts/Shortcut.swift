@@ -240,6 +240,67 @@ private let keyToCharacterMapping: [KeyboardShortcuts.Key: String] = [
 	.keypadPlus: "+\u{20e3}"
 ]
 
+@available(macOS 11.0, *)
+private let keyToSpecialSwiftUIKeyEquivalentMapping: [KeyboardShortcuts.Key: SwiftUI.KeyEquivalent?] = [
+	.return: .return,
+	.delete: .delete,
+	.deleteForward: .deleteForward,
+	.end: .end,
+	.escape: .escape,
+	.help: UnicodeScalar(NSHelpFunctionKey).map { KeyEquivalent(Character($0)) },
+	.home: .home,
+	.space: .space,
+	.tab: .tab,
+	.pageUp: .pageUp,
+	.pageDown: .pageDown,
+	.upArrow: .upArrow,
+	.rightArrow: .rightArrow,
+	.downArrow: .downArrow,
+	.leftArrow: .leftArrow,
+	.f1: UnicodeScalar(NSF1FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f2: UnicodeScalar(NSF2FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f3: UnicodeScalar(NSF3FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f4: UnicodeScalar(NSF4FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f5: UnicodeScalar(NSF5FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f6: UnicodeScalar(NSF6FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f7: UnicodeScalar(NSF7FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f8: UnicodeScalar(NSF8FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f9: UnicodeScalar(NSF9FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f10: UnicodeScalar(NSF10FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f11: UnicodeScalar(NSF11FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f12: UnicodeScalar(NSF12FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f13: UnicodeScalar(NSF13FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f14: UnicodeScalar(NSF14FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f15: UnicodeScalar(NSF15FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f16: UnicodeScalar(NSF16FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f17: UnicodeScalar(NSF17FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f18: UnicodeScalar(NSF18FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f19: UnicodeScalar(NSF19FunctionKey).map { KeyEquivalent(Character($0)) },
+	.f20: UnicodeScalar(NSF20FunctionKey).map { KeyEquivalent(Character($0)) },
+	// Neither the " ⃣" enclosed characters (e.g. "7⃣") nor regular
+	// characters with the `.numericPad` modifier produce shortcuts that are
+	// limited to number pad's keys. Return `nil` to prevent definition of bogus
+	// shortcuts.
+	.keypad0: nil,
+	.keypad1: nil,
+	.keypad2: nil,
+	.keypad3: nil,
+	.keypad4: nil,
+	.keypad5: nil,
+	.keypad6: nil,
+	.keypad7: nil,
+	.keypad8: nil,
+	.keypad9: nil,
+	.keypadClear: nil,
+	.keypadDecimal: nil,
+	.keypadDivide: nil,
+	.keypadEnter: nil,
+	.keypadEquals: nil,
+	.keypadMinus: nil,
+	.keypadMultiply: nil,
+	.keypadPlus: nil,
+]
+
 private func stringFromKeyCode(_ keyCode: Int) -> String {
 	String(format: "%C", keyCode)
 }
@@ -358,14 +419,20 @@ extension KeyboardShortcuts.Shortcut {
 	@available(macOS 11, *)
 	@MainActor
 	var toSwiftUI: KeyboardShortcut? {
-		guard
+		if let key, let keyEquivalent = keyToSpecialSwiftUIKeyEquivalentMapping[key] {
+			if let keyEquivalent {
+				return KeyboardShortcut(keyEquivalent, modifiers: modifiers.toEventModifiers)
+			} else {
+				return nil
+			}
+		} else if
 			let string = keyToCharacter(),
 			let character = string.first
-		else {
+		{
+			return KeyboardShortcut(.init(character), modifiers: modifiers.toEventModifiers)
+		} else {
 			return nil
 		}
-
-		return KeyboardShortcut(.init(character), modifiers: modifiers.toEventModifiers)
 	}
 }
 #endif
